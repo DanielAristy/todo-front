@@ -17,6 +17,17 @@ const List = () => {
 
   //Estamos creando una tienda donde se almacenan los estados
   const { dispatch, state } = useContext(Store);
+
+  //No nos esta bloqueando el render con esa funcion
+  //Consultar por http con fetch
+  useEffect(() => {
+    fetch(API+"todos")
+    .then(response => response.json())
+    .then((list) => {
+      dispatch({type: "update-list", list})
+    })
+  }, [state.list.length, dispatch]);
+
   return <div>
     <table>
       <thead>
@@ -59,12 +70,9 @@ const StoreProvider = ({ children }) => {
 }
 
 function App() {
-  return (
-    <div>
-      <List/>
-      <StoreProvider/>
-    </div>
-  );
+  return <StoreProvider>
+        <List/>
+  </StoreProvider>
 }
 
 export default App;
