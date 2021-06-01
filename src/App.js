@@ -1,5 +1,5 @@
 
-import React, { useContext, useReducer, useEffect } from 'react';
+import React, { useContext, useReducer, useEffect, useRef } from 'react';
 
 // Endpoint
 const API = "http://localhost:8080/api";
@@ -8,6 +8,20 @@ const API = "http://localhost:8080/api";
 const initialState = {
   list: []
 };
+
+//Componente para el formulario del Crud
+const Form = () => {
+  const formRef = useRef(null);
+  return <form ref={formRef}>
+      <input type="text" name="name" onChange={(event) => {
+        setState({...state, name: event.target.value })
+      }}></input>
+      <input type="text" name="description" onChange={(event) => {
+        setState({...state, description: event.target.value })
+      }}></input>
+      <button onClick={onAdd}>Agregar</button>
+  </form>
+}
 
 //Contexto
 const Store = createContext(initialState);
