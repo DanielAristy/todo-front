@@ -1,18 +1,22 @@
 
-import React, {useContext} from 'react';
+import React, { useContext, useReducer, useEffect } from 'react';
 
-const API = "http://localhost:8080/api"
+// Endpoint
+const API = "http://localhost:8080/api";
 
-function App() {
-  return (
-    <div>
-      <List/>
-    </div>
-  );
-}
+//Estados iniciales
+const initialState = {
+  list: []
+};
 
+//Contexto
+const Store = createContext(initialState);
+
+// Compenente de listado
 const List = () => {
 
+  //Estamos creando una tienda donde se almacenan los estados
+  const { dispatch, state } = useContext(Store);
   return <div>
     <table>
       <thead>
@@ -31,6 +35,36 @@ const List = () => {
       </tbody>
     </table>
   </div>
+}
+// Funcion pura que depende de una entrada y obtiene una salida
+function reducer(state,action) {
+  switch(action.type) {
+    case 'update-list':
+      return {...state, list: action.list};
+    case 'add-itme':
+      const newList = state.list;
+      newList.push(action.item);
+      return {...state, list: newList};
+      default:
+        return state;
+  }
+}
+
+//Provider, conectar entre si diferentes componentes
+const StoreProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer,initialState);
+  return <Store.Provider value={{ state, dispatch }}>
+      {children}
+    </Store.Provider>;
+}
+
+function App() {
+  return (
+    <div>
+      <List/>
+      <StoreProvider/>
+    </div>
+  );
 }
 
 export default App;
