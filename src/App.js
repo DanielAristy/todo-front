@@ -1,8 +1,8 @@
 
-import React, { useContext, useReducer, useEffect, useRef } from 'react';
+import React, { useContext, useReducer, useEffect, createContext } from 'react';
 
 // Endpoint
-const API = "http://localhost:8080/api";
+const API = "http://localhost:8000/api";
 
 //Estados iniciales
 const initialState = {
@@ -10,18 +10,18 @@ const initialState = {
 };
 
 //Componente para el formulario del Crud
-const Form = () => {
-  const formRef = useRef(null);
-  return <form ref={formRef}>
-      <input type="text" name="name" onChange={(event) => {
-        setState({...state, name: event.target.value })
-      }}></input>
-      <input type="text" name="description" onChange={(event) => {
-        setState({...state, description: event.target.value })
-      }}></input>
-      <button onClick={onAdd}>Agregar</button>
-  </form>
-}
+// const Form = () => {
+//   const formRef = useRef(null);
+//   return <form ref={formRef}>
+//       <input type="text" name="name" onChange={(event) => {
+//         setState({...state, name: event.target.value })
+//       }}></input>
+//       <input type="text" name="description" onChange={(event) => {
+//         setState({...state, description: event.target.value })
+//       }}></input>
+//       <button onClick={onAdd}>Agregar</button>
+//   </form>
+// }
 
 //Contexto
 const Store = createContext(initialState);
@@ -35,7 +35,8 @@ const List = () => {
   //No nos esta bloqueando el render con esa funcion
   //Consultar por http con fetch
   useEffect(() => {
-    fetch(API+"todos")
+    console.log(API+"/todos");
+    fetch(API+"/todos")
     .then(response => response.json())
     .then((list) => {
       dispatch({type: "update-list", list})
@@ -86,6 +87,7 @@ const StoreProvider = ({ children }) => {
 function App() {
   return <StoreProvider>
         <List/>
+        {/* <Form/> */}
   </StoreProvider>
 }
 
