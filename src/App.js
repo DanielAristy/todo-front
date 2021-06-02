@@ -6,7 +6,8 @@ const API = "http://localhost:8000/api";
 
 //Estados iniciales
 const initialState = {
-  list: []
+  list: [],
+  item:{}
 };
 
 //Contexto
@@ -17,8 +18,8 @@ const Store = createContext(initialState);
 const Form = () => {
   //Referencia para el formulario
   const formRef = useRef(null);
-  const { dispatch } = useContext(Store);
-  const [state, setState ] = useState({});
+  const { dispatch, state: {item} } = useContext(Store);
+  const [state, setState ] = useState(item);
 
   //Funcion interna del componente donde se agrega un nuevo Todo
   const onAdd = (event) => {
@@ -46,12 +47,44 @@ const Form = () => {
       formRef.current.reset();
     });
   }
+
+  const onEdit = (event) => {
+    event.preventDefault();
+
+    //Se obtienen los datos que ingresamos por el navegador desde el form
+    const request = {
+      name: state.name,
+      id: item.id,
+      esCompletado: item.esCompletado
+    };
+
+    fetch(API+"/todo", {
+      method: "PUT",
+      body: JSON.stringify(request),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then((todo) => {
+      dispatch({ type: "update-item", item: todo });
+      //Estados internos en el cual se limpian los datos del formulario
+      setState({name: ""})
+      formRef.current.reset();
+    });
+  }
   //Se crea la referencia cuando el componente esta creado
   return <form ref={formRef}>
-      <input type="text" name="name" onChange={(event) => {
+      <input type="text" name="name" defaultValue={item.name} onChange={(event) => {
         setState({...state, name: event.target.value })
       }}></input>
-      <button onClick={onAdd}>Agregar</button>
+      {
+        item.id && <button onClick={onEdit}>Actualizar</button>
+      }
+      {
+        !item.id && <button onClick={onAdd}>Agregar</button>
+      }
+      
   </form>
 }
 
@@ -72,6 +105,20 @@ const List = () => {
     })
   }, [state.list.length, dispatch]);
 
+  //Metodo para eliminar un elemento de la lista
+  const onDelete = (id) => {
+    fetch(API + "/"+id+"/todo", {
+      method: "DELETE"
+    })
+    .then((list) => {
+      dispatch({type: "delete-item", id})
+    })
+  };
+
+  const onEdit = (todo) => {
+    dispatch({type: "edit-item", item: todo})
+  };
+
   return <div>
     <table>
       <thead>
@@ -84,7 +131,9 @@ const List = () => {
           return <tr key={todo.id}>
             <td>{todo.id}</td>
             <td>{todo.name}</td>
-            <td>{todo.esCompletado}</td>
+            <td>{todo.esCompletado === true ? "SI": "NO"}</td>
+            <td><button onClick={()=>onDelete(todo.id)}>Eliminar</button></td>
+            <td><button onClick={()=>onEdit(todo)}>Editar</button></td>
           </tr>
         })}
       </tbody>
@@ -94,8 +143,23 @@ const List = () => {
 // Funcion pura que depende de una entrada y obtiene una salida
 function reducer(state,action) {
   switch(action.type) {
+    case 'update-item':
+      const listUpdateEdit = state.list.map((item) => {
+        if(item.id === action.item.id){
+          return action.item
+        }
+        return item
+      });
+      return {...state, list: listUpdateEdit, item: {}};
+    case 'edit-item':
+      return { ...state, item: action.item }
     case 'update-list':
-      return {...state, list: action.list};
+      return { ...state, list: action.list }
+    case 'delete-item':
+      const listUpdate = state.list.filter((item) => {
+        return item.id !== action.id;
+      });
+      return { ...state, list: listUpdate };
     case 'add-item':
       const newList = state.list;
       newList.push(action.item);
